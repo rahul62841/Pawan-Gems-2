@@ -83,9 +83,11 @@ export default {
         },
       },
       fontFamily: {
-        sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
+        sans: ["'Lato'", "sans-serif", "var(--font-sans)"],
+        serif: ["'Playfair Display'", "serif", "var(--font-serif)"],
         mono: ["var(--font-mono)"],
+        display: ["'Playfair Display'", "serif"],
+        body: ["'Lato'", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
