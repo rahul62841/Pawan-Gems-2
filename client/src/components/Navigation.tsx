@@ -6,12 +6,22 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { SearchDialog } from "./SearchDialog";
 import { CartPanel } from "./CartPanel";
 import { useCart } from "@/hooks/use-cart";
+import useUserStore from "@/store/useUserStore";
 
 export function Navigation() {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const { cartItems, isOpen: cartOpen, setIsOpen: setCartOpen, removeFromCart, updateQuantity, total, itemCount } = useCart();
+  const {
+    cartItems,
+    isOpen: cartOpen,
+    setIsOpen: setCartOpen,
+    removeFromCart,
+    updateQuantity,
+    total,
+    itemCount,
+  } = useCart();
+  const user = useUserStore((s) => s.user);
 
   const links = [
     { href: "/", label: "Home" },
@@ -33,7 +43,7 @@ export function Navigation() {
               <div className="flex flex-col gap-8 mt-12">
                 {links.map((link) => (
                   <Link key={link.href} href={link.href}>
-                    <span 
+                    <span
                       className="text-2xl font-display cursor-pointer hover:text-primary transition-colors"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -48,10 +58,16 @@ export function Navigation() {
           {/* Desktop Links - Left */}
           <div className="hidden lg:flex items-center gap-8">
             {links.slice(0, 2).map((link) => (
-              <Link key={link.href} href={link.href} className={cn(
-                "text-sm font-medium tracking-wide hover:text-primary transition-colors uppercase",
-                location === link.href ? "text-primary font-bold" : "text-foreground/80"
-              )}>
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "text-sm font-medium tracking-wide hover:text-primary transition-colors uppercase",
+                  location === link.href
+                    ? "text-primary font-bold"
+                    : "text-foreground/80"
+                )}
+              >
                 {link.label}
               </Link>
             ))}
@@ -59,7 +75,10 @@ export function Navigation() {
 
           {/* Logo - Center */}
           <div className="flex-1 lg:flex-none flex justify-center">
-            <Link href="/" className="font-display text-2xl lg:text-3xl font-bold tracking-tighter text-primary">
+            <Link
+              href="/"
+              className="font-display text-2xl lg:text-3xl font-bold tracking-tighter text-primary"
+            >
               PAWAN GEMS
             </Link>
           </div>
@@ -67,10 +86,16 @@ export function Navigation() {
           {/* Desktop Links - Right */}
           <div className="hidden lg:flex items-center gap-8">
             {links.slice(2).map((link) => (
-              <Link key={link.href} href={link.href} className={cn(
-                "text-sm font-medium tracking-wide hover:text-primary transition-colors uppercase",
-                location === link.href ? "text-primary font-bold" : "text-foreground/80"
-              )}>
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "text-sm font-medium tracking-wide hover:text-primary transition-colors uppercase",
+                  location === link.href
+                    ? "text-primary font-bold"
+                    : "text-foreground/80"
+                )}
+              >
                 {link.label}
               </Link>
             ))}
@@ -78,14 +103,20 @@ export function Navigation() {
 
           {/* Actions */}
           <div className="flex items-center gap-4 lg:ml-8">
-            <button 
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex items-center px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm font-medium"
+            >
+              {user ? user.name : "Login"}
+            </Link>
+            <button
               onClick={() => setSearchOpen(true)}
               className="p-2 hover:bg-secondary rounded-full transition-colors"
               data-testid="button-search"
             >
               <Search className="w-5 h-5 text-foreground/80" />
             </button>
-            <button 
+            <button
               onClick={() => setCartOpen(true)}
               className="p-2 hover:bg-secondary rounded-full transition-colors relative"
               data-testid="button-cart"
