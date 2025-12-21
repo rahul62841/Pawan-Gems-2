@@ -1,52 +1,20 @@
-import { useState, useCallback } from 'react';
-import { Product } from '@shared/schema';
-
-export interface CartItem {
-  product: Product;
-  quantity: number;
-}
+import { useCallback } from "react";
+import { Product } from "@shared/schema";
+import useCartStore, { CartItem } from "@/store/useStore";
 
 export function useCart() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const cartItems = useCartStore((s) => s.cartItems);
+  const isOpen = useCartStore((s) => s.isOpen);
+  const setIsOpen = useCartStore((s) => s.setIsOpen);
+  const addToCart = useCartStore((s) => s.addToCart);
+  const removeFromCart = useCartStore((s) => s.removeFromCart);
+  const updateQuantity = useCartStore((s) => s.updateQuantity);
+  const clearCart = useCartStore((s) => s.clearCart);
 
-  const addToCart = useCallback((product: Product) => {
-    setCartItems(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
-  }, []);
-
-  const removeFromCart = useCallback((productId: number) => {
-    setCartItems(prev => prev.filter(item => item.product.id !== productId));
-  }, []);
-
-  const updateQuantity = useCallback((productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
-    setCartItems(prev =>
-      prev.map(item =>
-        item.product.id === productId
-          ? { ...item, quantity }
-          : item
-      )
-    );
-  }, [removeFromCart]);
-
-  const clearCart = useCallback(() => {
-    setCartItems([]);
-  }, []);
-
-  const total = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const total = cartItems.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return {

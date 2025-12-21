@@ -6,6 +6,7 @@ import { useRoute, Link } from "wouter";
 import { Loader2, ArrowLeft, Check, ShieldCheck, Truck } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/hooks/use-cart";
 
 export default function ProductDetail() {
   const [, params] = useRoute("/product/:id");
@@ -13,15 +14,18 @@ export default function ProductDetail() {
   const { data: product, isLoading, error } = useProduct(id);
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
+  const { addToCart } = useCart();
 
   const handleAddToCart = () => {
     setIsAdding(true);
-    // Simulate API call
+    if (!product) return;
+    addToCart(product);
+    // Simulate API feedback
     setTimeout(() => {
       setIsAdding(false);
       toast({
         title: "Added to cart",
-        description: `${product?.name} has been added to your bag.`,
+        description: `${product.name} has been added to your bag.`,
       });
     }, 800);
   };
@@ -45,9 +49,9 @@ export default function ProductDetail() {
     );
   }
 
-  const priceFormatted = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  const priceFormatted = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
   }).format(product.price / 100);
 
   return (
@@ -55,15 +59,18 @@ export default function ProductDetail() {
       <Navigation />
 
       <div className="pt-32 pb-24 px-6 lg:px-8 max-w-7xl mx-auto">
-        <Link href="/shop" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-8 transition-colors">
+        <Link
+          href="/shop"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-8 transition-colors"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" /> Back to Collection
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Image */}
           <div className="relative aspect-[4/5] bg-secondary rounded-lg overflow-hidden shadow-2xl">
-            <img 
-              src={product.imageUrl} 
+            <img
+              src={product.imageUrl}
               alt={product.name}
               className="w-full h-full object-cover"
             />
@@ -90,17 +97,17 @@ export default function ProductDetail() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button 
-                size="lg" 
+              <Button
+                size="lg"
                 onClick={handleAddToCart}
                 disabled={isAdding}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-14 text-lg rounded-none"
               >
                 {isAdding ? "Adding..." : "Add to Cart"}
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
+              <Button
+                size="lg"
+                variant="outline"
                 className="flex-1 h-14 text-lg rounded-none border-primary/20 hover:bg-secondary"
               >
                 Book Appointment
@@ -113,21 +120,29 @@ export default function ProductDetail() {
                 <ShieldCheck className="w-5 h-5 text-accent mt-1" />
                 <div>
                   <h4 className="font-semibold text-sm">Lifetime Warranty</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Protection for your investment.</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Protection for your investment.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Truck className="w-5 h-5 text-accent mt-1" />
                 <div>
                   <h4 className="font-semibold text-sm">Secure Shipping</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Insured delivery worldwide.</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Insured delivery worldwide.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-accent mt-1" />
                 <div>
-                  <h4 className="font-semibold text-sm">Authenticity Guaranteed</h4>
-                  <p className="text-xs text-muted-foreground mt-1">Certified by GIA gemologists.</p>
+                  <h4 className="font-semibold text-sm">
+                    Authenticity Guaranteed
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Certified by GIA gemologists.
+                  </p>
                 </div>
               </div>
             </div>
