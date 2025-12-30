@@ -1,8 +1,28 @@
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Trash2 } from 'lucide-react';
-import { CartItem } from '@/hooks/use-cart';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Trash2 } from "lucide-react";
+import { useCart } from "@/hooks/use-cart";
+
+// The use-cart hook declares CartItem internally but doesn't export it.
+// Define a local CartItem type here to match the shape used by this component.
+interface CartItem {
+  product: {
+    id: number;
+    imageUrl: string;
+    name: string;
+    category?: string;
+    price: number; // price in cents
+  };
+  quantity: number;
+}
+import { useToast } from "@/hooks/use-toast";
 
 interface CartPanelProps {
   isOpen: boolean;
@@ -21,6 +41,38 @@ export function CartPanel({
   onRemove,
   total,
 }: CartPanelProps) {
+  const { clearCart } = useCart();
+  const { toast } = useToast();
+
+  async function handleRequestPurchase() {
+    try {
+      const items = cartItems.map((it) => ({
+        productId: it.product.id,
+        quantity: it.quantity,
+      }));
+      for (const it of items) {
+        await fetch("/api/order-requests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            productId: it.productId,
+            quantity: it.quantity,
+            message: "Customer purchase request",
+          }),
+        });
+      }
+      toast({
+        title: "Request sent",
+        description: "Your purchase request was sent to admin.",
+      });
+      clearCart();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Could not send request" });
+    }
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-md flex flex-col">
@@ -34,7 +86,7 @@ export function CartPanel({
               <p className="text-muted-foreground">Your cart is empty</p>
             </div>
           ) : (
-            cartItems.map(item => (
+            cartItems.map((item) => (
               <div key={item.product.id} className="flex gap-4 border-b pb-4">
                 <img
                   src={item.product.imageUrl}
@@ -43,7 +95,9 @@ export function CartPanel({
                 />
                 <div className="flex-1">
                   <h4 className="font-medium text-sm">{item.product.name}</h4>
-                  <p className="text-xs text-muted-foreground mb-2">{item.product.category}</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {item.product.category}
+                  </p>
                   <p className="text-sm font-semibold text-primary">
                     ${(item.product.price / 100).toFixed(2)} each
                   </p>
@@ -52,7 +106,12 @@ export function CartPanel({
                       type="number"
                       min="1"
                       value={item.quantity}
-                      onChange={(e) => onUpdateQuantity(item.product.id, parseInt(e.target.value) || 1)}
+                      onChange={(e) =>
+                        onUpdateQuantity(
+                          item.product.id,
+                          parseInt(e.target.value) || 1
+                        )
+                      }
                       className="w-16 h-8"
                     />
                     <button
@@ -76,8 +135,13 @@ export function CartPanel({
                 ${(total / 100).toFixed(2)}
               </span>
             </div>
-            <Button className="w-full bg-primary hover:bg-primary/90">
-              Proceed to Checkout
+
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => handleRequestPurchase()}
+            >
+              Request Purchase
             </Button>
           </SheetFooter>
         )}

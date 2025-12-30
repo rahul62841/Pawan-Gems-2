@@ -3,7 +3,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
-import { ensureDbTables } from "./db";
+import { ensureDbTables, pool } from "./db";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
@@ -83,11 +83,20 @@ app.use((req, res, next) => {
       const existing = await auth.findUserByEmail(adminEmail);
       if (!existing) {
         console.log(`Creating admin user: ${adminEmail}`);
-        await auth.createUser(
+        const user = await auth.createUser(
           adminEmail.split("@")[0],
           adminEmail,
           adminPassword
         );
+        // ensure admin flag is set
+        await pool.query("UPDATE users SET is_admin = true WHERE id = $1", [
+          user.id,
+        ]);
+      } else {
+        // ensure existing user is marked admin when ADMIN_EMAIL present
+        await pool.query("UPDATE users SET is_admin = true WHERE email = $1", [
+          adminEmail.toLowerCase(),
+        ]);
       }
     }
   } catch (err) {

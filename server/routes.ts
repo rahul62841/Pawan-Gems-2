@@ -1,4 +1,5 @@
 import type { Express } from "express";
+import { sql } from "drizzle-orm";
 import type { Server } from "http";
 import { storage } from "./storage";
 import * as auth from "./auth_db";
@@ -7,6 +8,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { insertProductSchema } from "@shared/schema";
+import { db, pool } from "./db";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -50,6 +52,94 @@ export async function registerRoutes(
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Create an order request (user)
+  app.post("/api/order-requests", async (req, res) => {
+    try {
+      const userId = await auth.getUserIdBySession(req.cookies.sessionId);
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+      const { productId, quantity, message } = req.body;
+      const result = await pool.query(
+        "INSERT INTO order_requests (user_id, product_id, quantity, message) VALUES ($1,$2,$3,$4) RETURNING *",
+        [userId, productId, quantity || 1, message || null]
+      );
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+
+  // List current user's order requests
+  app.get("/api/order-requests", async (req, res) => {
+    try {
+      const userId = await auth.getUserIdBySession(req.cookies.sessionId);
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+      const result = await pool.query(
+        `SELECT orr.*, p.name as product_name, p.image_url as product_image
+         FROM order_requests orr
+         JOIN products p ON p.id = orr.product_id
+         WHERE orr.user_id = $1
+         ORDER BY orr.created_at DESC`,
+        [userId]
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+
+  // Admin: list all order requests
+  app.get("/api/admin/order-requests", async (req, res) => {
+    try {
+      const userId = await auth.getUserIdBySession(req.cookies.sessionId);
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+      const user = await pool.query(
+        "SELECT is_admin FROM users WHERE id = $1",
+        [userId]
+      );
+      if (!user.rows[0] || !user.rows[0].is_admin)
+        return res.status(403).json({ error: "forbidden" });
+      const result = await pool.query(
+        `SELECT orr.*, p.name as product_name, p.image_url as product_image, u.name as user_name, u.email as user_email
+         FROM order_requests orr
+         JOIN products p ON p.id = orr.product_id
+         JOIN users u ON u.id = orr.user_id
+         ORDER BY orr.created_at DESC`
+      );
+      res.json(result.rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "internal" });
+    }
+  });
+
+  // Admin: accept or decline request
+  app.post("/api/admin/order-requests/:id/decide", async (req, res) => {
+    try {
+      const userId = await auth.getUserIdBySession(req.cookies.sessionId);
+      if (!userId) return res.status(401).json({ error: "Not authenticated" });
+      const user = await pool.query(
+        "SELECT is_admin FROM users WHERE id = $1",
+        [userId]
+      );
+      if (!user.rows[0] || !user.rows[0].is_admin)
+        return res.status(403).json({ error: "forbidden" });
+      const id = req.params.id;
+      const { decision, adminMessage } = req.body; // decision: 'accepted' | 'declined'
+      if (!["accepted", "declined"].includes(decision))
+        return res.status(400).json({ error: "invalid decision" });
+      const result = await pool.query(
+        "UPDATE order_requests SET status = $1, admin_message = $2 WHERE id = $3 RETURNING *",
+        [decision, adminMessage, id]
+      );
+      res.json(result.rows[0]);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "internal" });
     }
   });
   // Products API

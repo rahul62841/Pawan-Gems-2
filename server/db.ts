@@ -41,5 +41,28 @@ export async function ensureDbTables() {
       is_featured boolean DEFAULT false,
       created_at timestamptz DEFAULT now()
     );
+
+    -- order requests from customers to admins
+    CREATE TABLE IF NOT EXISTS order_requests (
+      id serial PRIMARY KEY,
+      user_id integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id integer NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      quantity integer NOT NULL DEFAULT 1,
+      message text,
+      status text NOT NULL DEFAULT 'pending',
+      admin_message text,
+      created_at timestamptz DEFAULT now()
+    );
+
+    -- ensure existing users table has is_admin column (added for older databases)
+    DO $$
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name='users' AND column_name='is_admin'
+      ) THEN
+        ALTER TABLE users ADD COLUMN is_admin boolean DEFAULT false;
+      END IF;
+    END$$;
   `);
 }

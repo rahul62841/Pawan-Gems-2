@@ -104,7 +104,7 @@ export function Navigation() {
           {/* Actions */}
           <div className="flex items-center gap-4 lg:ml-8">
             <Link
-              href="/login"
+              href={user ? "/profile" : "/login"}
               className="hidden sm:inline-flex items-center px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm font-medium"
             >
               {user ? user.name : "Login"}
