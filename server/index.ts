@@ -3,6 +3,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
+import { ensureDbTables } from "./db";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 
@@ -64,6 +65,14 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Ensure DB schema for users/sessions exists before routes/auth run
+  try {
+    await ensureDbTables();
+  } catch (err) {
+    console.error("Failed to ensure DB tables:", err);
+    process.exit(1);
+  }
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

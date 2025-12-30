@@ -1,8 +1,7 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
-import * as auth from "./auth";
-import { getUserById } from "./auth";
+import * as auth from "./auth_db";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { insertProductSchema } from "@shared/schema";
@@ -91,7 +90,7 @@ export async function registerRoutes(
           .json({ message: "Password must be at least 6 characters" });
       try {
         const user = await auth.createUser(name, email, password);
-        const sessionId = auth.createSession(user.id);
+        const sessionId = await auth.createSession(user.id);
         res.cookie("sessionId", sessionId, { httpOnly: true, sameSite: "lax" });
         return res.status(201).json(user);
       } catch (err: any) {
@@ -112,7 +111,7 @@ export async function registerRoutes(
       const user = await auth.verifyPassword(email, password);
       if (!user)
         return res.status(401).json({ message: "Invalid credentials" });
-      const sessionId = auth.createSession(user.id);
+      const sessionId = await auth.createSession(user.id);
       res.cookie("sessionId", sessionId, { httpOnly: true, sameSite: "lax" });
       return res.json(user);
     } catch (err) {
@@ -122,16 +121,18 @@ export async function registerRoutes(
 
   app.post("/api/auth/logout", async (req, res) => {
     const sessionId = req.cookies?.sessionId || req.headers["x-session-id"];
-    auth.destroySession(sessionId as string | undefined);
+    await auth.destroySession(sessionId as string | undefined);
     res.clearCookie("sessionId");
     res.json({ ok: true });
   });
 
   app.get("/api/auth/me", async (req, res) => {
     const sessionId = req.cookies?.sessionId || req.headers["x-session-id"];
-    const userId = auth.getUserIdBySession(sessionId as string | undefined);
+    const userId = await auth.getUserIdBySession(
+      sessionId as string | undefined
+    );
     if (!userId) return res.status(401).json({ message: "Not authenticated" });
-    const user = getUserById(userId);
+    const user = await auth.getUserById(userId);
     if (!user) return res.status(401).json({ message: "Not authenticated" });
     res.json(user);
   });
