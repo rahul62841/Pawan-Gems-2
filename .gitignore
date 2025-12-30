@@ -1,8 +1,6 @@
 # dependencies
 node_modules/
 
-# environment variables
-.env
 
 # build output
 dist/
@@ -15,3 +13,7 @@ yarn-error.log*
 # OS / editor
 .DS_Store
 .vscode/
+
+# environment
+.env
+.env.local
