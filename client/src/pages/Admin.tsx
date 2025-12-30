@@ -235,9 +235,9 @@ export default function Admin() {
                       </TableCell>
                       <TableCell>{product.category}</TableCell>
                       <TableCell>
-                        {new Intl.NumberFormat("en-US", {
+                        {new Intl.NumberFormat("en-IN", {
                           style: "currency",
-                          currency: "USD",
+                          currency: "INR",
                         }).format(product.price / 100)}
                       </TableCell>
                       <TableCell>

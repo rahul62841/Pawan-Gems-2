@@ -49,9 +49,9 @@ export default function ProductDetail() {
     );
   }
 
-  const priceFormatted = new Intl.NumberFormat("en-US", {
+  const priceFormatted = new Intl.NumberFormat("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
   }).format(product.price / 100);
 
   return (

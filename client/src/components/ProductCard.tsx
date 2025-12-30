@@ -15,9 +15,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const priceFormatted = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  const priceFormatted = new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
   }).format(product.price / 100);
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -57,7 +57,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
               <ShoppingBag className="w-5 h-5" />
             </button>
           </div>
-          
+
           <div className="space-y-1 text-center">
             <h3 className="font-display text-lg leading-tight group-hover:text-primary transition-colors">
               {product.name}
@@ -65,9 +65,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">
               {product.category}
             </p>
-            <p className="font-semibold text-primary mt-2">
-              {priceFormatted}
-            </p>
+            <p className="font-semibold text-primary mt-2">{priceFormatted}</p>
           </div>
         </motion.div>
       </Link>

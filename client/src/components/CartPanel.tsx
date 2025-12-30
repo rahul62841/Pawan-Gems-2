@@ -99,7 +99,11 @@ export function CartPanel({
                     {item.product.category}
                   </p>
                   <p className="text-sm font-semibold text-primary">
-                    ${(item.product.price / 100).toFixed(2)} each
+                    {new Intl.NumberFormat("en-IN", {
+                      style: "currency",
+                      currency: "INR",
+                    }).format(item.product.price / 100)}{" "}
+                    each
                   </p>
                   <div className="flex items-center gap-2 mt-2">
                     <Input
@@ -132,7 +136,10 @@ export function CartPanel({
             <div className="flex justify-between items-center">
               <span className="font-medium">Total:</span>
               <span className="text-lg font-bold text-primary">
-                ${(total / 100).toFixed(2)}
+                {new Intl.NumberFormat("en-IN", {
+                  style: "currency",
+                  currency: "INR",
+                }).format(total / 100)}
               </span>
             </div>
 
