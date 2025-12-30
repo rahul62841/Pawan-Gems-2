@@ -73,6 +73,27 @@ app.use((req, res, next) => {
     process.exit(1);
   }
 
+  // Auto-create admin user from environment variables if provided
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (adminEmail && adminPassword) {
+      // import here to avoid circular before db initialized
+      const auth = await import("./auth_db");
+      const existing = await auth.findUserByEmail(adminEmail);
+      if (!existing) {
+        console.log(`Creating admin user: ${adminEmail}`);
+        await auth.createUser(
+          adminEmail.split("@")[0],
+          adminEmail,
+          adminPassword
+        );
+      }
+    }
+  } catch (err) {
+    console.error("Failed to create admin user:", err);
+  }
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
