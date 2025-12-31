@@ -27,6 +27,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { apiFetch } from "@/lib/api";
 
 export default function Admin() {
   const [, setLocation] = useLocation();
@@ -34,7 +35,7 @@ export default function Admin() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await import("@/lib/api").then(m => m.default("/api/auth/me", {
+        const res = await apiFetch("/api/auth/me", {
           credentials: "include",
         });
         if (!res.ok) {
@@ -62,9 +63,9 @@ export default function Admin() {
 
   async function fetchOrderRequests() {
     try {
-      const res = await import("@/lib/api").then(m => m.default("/api/admin/order-requests", {
+      const res = await apiFetch("/api/admin/order-requests", {
         credentials: "include",
-      }));
+      });
       if (res.ok) {
         const data = await res.json();
         setOrderRequests(data);
@@ -79,12 +80,12 @@ export default function Admin() {
       const adminMessage =
         adminMessages[id] ||
         (decision === "accepted" ? "Approved" : "Declined");
-      const res = await import("@/lib/api").then(m => m.default(`/api/admin/order-requests/${id}/decide`, {
+      const res = await apiFetch(`/api/admin/order-requests/${id}/decide`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ decision, adminMessage }),
-      }));
+      });
       if (res.ok) {
         await fetchOrderRequests();
         toast({ title: "Updated", description: "Request updated" });
