@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import express, { type Request, Response, NextFunction } from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { ensureDbTables, pool } from "./db";
 import { serveStatic } from "./static";
@@ -26,6 +27,13 @@ app.use(
 
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+// Configure CORS to allow requests from the frontend (set FRONTEND_ORIGIN in production)
+const frontendOrigin =
+  process.env.FRONTEND_ORIGIN ||
+  (process.env.NODE_ENV !== "production" ? "http://localhost:5173" : undefined);
+if (frontendOrigin) {
+  app.use(cors({ origin: frontendOrigin, credentials: true }));
+}
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {

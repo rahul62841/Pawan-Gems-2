@@ -34,7 +34,10 @@ export default function Admin() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/auth/me", { credentials: "include" });
+        const base = import.meta.env.VITE_API_URL || "";
+        const res = await fetch(`${base}/api/auth/me`, {
+          credentials: "include",
+        });
         if (!res.ok) {
           setLocation("/");
           return;

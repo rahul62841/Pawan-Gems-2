@@ -245,10 +245,19 @@ export async function registerRoutes(
       if (!user)
         return res.status(401).json({ message: "Invalid credentials" });
       const sessionId = await auth.createSession(user.id);
-      res.cookie("sessionId", sessionId, { httpOnly: true, sameSite: "lax" });
-      // Enforce single admin user: only the configured admin credentials
-      const ADMIN_EMAIL = "Pawangems0@gmail.com";
-      const ADMIN_PASSWORD = "PawanGemsss@01";
+      // Cookie options: secure + sameSite none in production to allow cross-site cookies
+      const cookieOptions: any = { httpOnly: true };
+      if (process.env.NODE_ENV === "production") {
+        cookieOptions.sameSite = "none";
+        cookieOptions.secure = true;
+      } else {
+        cookieOptions.sameSite = "lax";
+      }
+      res.cookie("sessionId", sessionId, cookieOptions);
+
+      // Enforce single admin user: use environment variables if provided
+      const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "pawangems0@gmail.com";
+      const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "PawanGemsss@01";
 
       try {
         if (
