@@ -28,11 +28,20 @@ app.use(
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // Configure CORS to allow requests from the frontend (set FRONTEND_ORIGIN in production)
-const frontendOrigin =
+// Normalize the origin to avoid mismatches like a trailing slash
+const rawFrontendOrigin =
   process.env.FRONTEND_ORIGIN ||
   (process.env.NODE_ENV !== "production" ? "http://localhost:5173" : undefined);
+const frontendOrigin = rawFrontendOrigin
+  ? String(rawFrontendOrigin).replace(/\/$/, "")
+  : undefined;
 if (frontendOrigin) {
-  app.use(cors({ origin: frontendOrigin, credentials: true }));
+  app.use(
+    cors({
+      origin: frontendOrigin,
+      credentials: true,
+    })
+  );
 }
 
 export function log(message: string, source = "express") {
