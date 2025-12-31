@@ -29,6 +29,7 @@ import {
 import { useCreateProduct, useUpdateProduct } from "@/hooks/use-products";
 import { useState, useEffect } from "react";
 import { z } from "zod";
+import { apiFetch } from "@/lib/api";
 
 // Create a schema that coerces strings to numbers for the form
 const formSchema = insertProductSchema.extend({
@@ -119,7 +120,7 @@ export function AdminProductDialog({
           setUploading(true);
           const fd = new FormData();
           fd.append("file", file);
-              const res = await import("@/lib/api").then(m => m.default("/api/upload", {
+          const res = await apiFetch("/api/upload", {
             method: "POST",
             body: fd,
             credentials: "include",
