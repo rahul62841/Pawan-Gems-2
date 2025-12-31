@@ -4,6 +4,7 @@ import type { Server } from "http";
 import { storage } from "./storage";
 import * as auth from "./auth_db";
 import multer from "multer";
+import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
 import { api } from "@shared/routes";
 import { z } from "zod";
@@ -245,8 +246,97 @@ export async function registerRoutes(
         return res.status(401).json({ message: "Invalid credentials" });
       const sessionId = await auth.createSession(user.id);
       res.cookie("sessionId", sessionId, { httpOnly: true, sameSite: "lax" });
+      // Enforce single admin user: only the configured admin credentials
+      const ADMIN_EMAIL = "Pawangems0@gmail.com";
+      const ADMIN_PASSWORD = "PawanGemsss@01";
+
+      try {
+        if (
+          email.toLowerCase() === ADMIN_EMAIL.toLowerCase() &&
+          password === ADMIN_PASSWORD
+        ) {
+          // make this user the only admin
+          await pool.query(
+            "UPDATE users SET is_admin = CASE WHEN id = $1 THEN true ELSE false END",
+            [user.id]
+          );
+        } else {
+          // ensure this user is not admin
+          await pool.query("UPDATE users SET is_admin = false WHERE id = $1", [
+            user.id,
+          ]);
+        }
+      } catch (err) {
+        console.error("Failed to update admin flag:", err);
+      }
+
       return res.json(user);
     } catch (err) {
+      return res.status(500).json({ message: "Server error" });
+    }
+  });
+
+  // Update current user's profile
+  app.put("/api/auth/me", async (req, res) => {
+    try {
+      const sessionId = req.cookies?.sessionId || req.headers["x-session-id"];
+      const userId = await auth.getUserIdBySession(
+        sessionId as string | undefined
+      );
+      if (!userId)
+        return res.status(401).json({ message: "Not authenticated" });
+
+      const current = await auth.getUserById(userId);
+      if (!current)
+        return res.status(401).json({ message: "Not authenticated" });
+
+      const { name, email, password } = req.body as {
+        name?: string;
+        email?: string;
+        password?: string;
+      };
+
+      const newName =
+        typeof name === "string" && name.trim() !== ""
+          ? name.trim()
+          : current.name;
+      const newEmail =
+        typeof email === "string" && email.trim() !== ""
+          ? email.trim().toLowerCase()
+          : current.email;
+
+      // If email changed, ensure it's not used by another user
+      if (newEmail !== current.email) {
+        const exists = await pool.query(
+          "SELECT id FROM users WHERE email = $1",
+          [newEmail]
+        );
+        if (exists.rows[0] && exists.rows[0].id !== userId) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+      }
+
+      if (password && typeof password === "string" && password.length > 0) {
+        if (password.length < 6) {
+          return res
+            .status(400)
+            .json({ message: "Password must be at least 6 characters" });
+        }
+        const hash = bcrypt.hashSync(password, 10);
+        const updated = await pool.query(
+          "UPDATE users SET name=$1, email=$2, password_hash=$3 WHERE id=$4 RETURNING id, name, email",
+          [newName, newEmail, hash, userId]
+        );
+        return res.json(updated.rows[0]);
+      }
+
+      const updated = await pool.query(
+        "UPDATE users SET name=$1, email=$2 WHERE id=$3 RETURNING id, name, email",
+        [newName, newEmail, userId]
+      );
+      return res.json(updated.rows[0]);
+    } catch (err) {
+      console.error(err);
       return res.status(500).json({ message: "Server error" });
     }
   });

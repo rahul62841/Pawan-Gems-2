@@ -1,4 +1,6 @@
 import { Navigation } from "@/components/Navigation";
+import { useEffect } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useProducts, useDeleteProduct } from "@/hooks/use-products";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
@@ -27,6 +29,26 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 export default function Admin() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/me", { credentials: "include" });
+        if (!res.ok) {
+          setLocation("/");
+          return;
+        }
+        const user = await res.json();
+        if (!user || !user.is_admin) {
+          setLocation("/");
+        }
+      } catch (err) {
+        console.error(err);
+        setLocation("/");
+      }
+    })();
+  }, [setLocation]);
   const { data: products, isLoading } = useProducts();
   const deleteMutation = useDeleteProduct();
   const [search, setSearch] = useState("");

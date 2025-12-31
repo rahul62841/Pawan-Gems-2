@@ -57,7 +57,7 @@ export async function destroySession(sessionId?: string | null) {
 
 export async function getUserById(id: number) {
   const res = await pool.query(
-    `SELECT id, name, email FROM users WHERE id=$1`,
+    `SELECT id, name, email, is_admin FROM users WHERE id=$1`,
     [id]
   );
   return res.rows[0];

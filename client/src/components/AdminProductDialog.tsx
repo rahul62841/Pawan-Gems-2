@@ -192,7 +192,7 @@ export function AdminProductDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="price">Price (in cents)</Label>
+                <Label htmlFor="price">Price</Label>
                 <Input
                   id="price"
                   type="number"
@@ -200,7 +200,7 @@ export function AdminProductDialog({
                   placeholder="125000"
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  Example: 125000 = $1,250.00
+                  Example: 125000 = ₹1,250.00
                 </p>
                 {errors.price && (
                   <p className="text-destructive text-xs">
