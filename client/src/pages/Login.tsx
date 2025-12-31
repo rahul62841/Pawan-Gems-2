@@ -7,9 +7,10 @@ import useUserStore, { User } from "@/store/useUserStore";
 import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import apiFetch from "@/lib/api";
 
 async function loginApi(payload: { email: string; password: string }) {
-  const res = await fetch("/api/auth/login", {
+  const res = await apiFetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -21,7 +22,10 @@ async function loginApi(payload: { email: string; password: string }) {
 }
 
 async function logoutApi() {
-  await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+  await apiFetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
 }
 
 type FormValues = {

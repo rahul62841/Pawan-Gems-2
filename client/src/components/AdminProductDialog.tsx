@@ -119,7 +119,7 @@ export function AdminProductDialog({
           setUploading(true);
           const fd = new FormData();
           fd.append("file", file);
-          const res = await fetch("/api/upload", {
+              const res = await import("@/lib/api").then(m => m.default("/api/upload", {
             method: "POST",
             body: fd,
             credentials: "include",

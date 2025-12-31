@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { apiFetch } from "@/lib/api";
 
 // The use-cart hook declares CartItem internally but doesn't export it.
 // Define a local CartItem type here to match the shape used by this component.
@@ -51,7 +52,7 @@ export function CartPanel({
         quantity: it.quantity,
       }));
       for (const it of items) {
-        await fetch("/api/order-requests", {
+        await apiFetch("/api/order-requests", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

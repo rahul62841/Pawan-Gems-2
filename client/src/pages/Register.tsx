@@ -7,13 +7,14 @@ import useUserStore, { User } from "@/store/useUserStore";
 import { useLocation } from "wouter";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import apiFetch from "@/lib/api";
 
 async function registerApi(payload: {
   name: string;
   email: string;
   password: string;
 }) {
-  const res = await fetch("/api/auth/register", {
+  const res = await apiFetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

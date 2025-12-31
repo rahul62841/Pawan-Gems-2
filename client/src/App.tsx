@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import { useEffect } from "react";
 import useUserStore from "@/store/useUserStore";
+import { apiFetch } from "@/lib/api";
 
 import Home from "@/pages/Home";
 import Shop from "@/pages/Shop";
@@ -39,7 +40,7 @@ function App() {
 
   useEffect(() => {
     // try to hydrate user session from server
-    fetch("/api/auth/me", { credentials: "include" })
+    apiFetch("/api/auth/me", { credentials: "include" })
       .then(async (res) => {
         if (!res.ok) return;
         const data = await res.json();

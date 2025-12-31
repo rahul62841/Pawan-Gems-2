@@ -2,12 +2,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { type InsertProduct, type Product } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import apiFetch from "@/lib/api";
 
 export function useProducts() {
   return useQuery({
     queryKey: [api.products.list.path],
     queryFn: async () => {
-      const res = await fetch(api.products.list.path, { credentials: "include" });
+      const res = await apiFetch(api.products.list.path, {
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to fetch products");
       return api.products.list.responses[200].parse(await res.json());
     },
@@ -19,7 +22,7 @@ export function useProduct(id: number) {
     queryKey: [api.products.get.path, id],
     queryFn: async () => {
       const url = buildUrl(api.products.get.path, { id });
-      const res = await fetch(url, { credentials: "include" });
+      const res = await apiFetch(url, { credentials: "include" });
       if (res.status === 404) return null;
       if (!res.ok) throw new Error("Failed to fetch product");
       return api.products.get.responses[200].parse(await res.json());
@@ -31,16 +34,16 @@ export function useProduct(id: number) {
 export function useCreateProduct() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
+
   return useMutation({
     mutationFn: async (data: InsertProduct) => {
-      const res = await fetch(api.products.create.path, {
+      const res = await apiFetch(api.products.create.path, {
         method: api.products.create.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
         credentials: "include",
       });
-      
+
       if (!res.ok) {
         const error = await res.json();
         throw new Error(error.message || "Failed to create product");
@@ -52,8 +55,12 @@ export function useCreateProduct() {
       toast({ title: "Success", description: "Product created successfully" });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 }
 
@@ -62,9 +69,12 @@ export function useUpdateProduct() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: number } & Partial<InsertProduct>) => {
+    mutationFn: async ({
+      id,
+      ...updates
+    }: { id: number } & Partial<InsertProduct>) => {
       const url = buildUrl(api.products.update.path, { id });
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method: api.products.update.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
@@ -82,8 +92,12 @@ export function useUpdateProduct() {
       toast({ title: "Success", description: "Product updated successfully" });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 }
 
@@ -94,7 +108,10 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: async (id: number) => {
       const url = buildUrl(api.products.delete.path, { id });
-      const res = await fetch(url, { method: api.products.delete.method, credentials: "include" });
+      const res = await apiFetch(url, {
+        method: api.products.delete.method,
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to delete product");
     },
     onSuccess: () => {
@@ -102,7 +119,11 @@ export function useDeleteProduct() {
       toast({ title: "Success", description: "Product deleted successfully" });
     },
     onError: (error: Error) => {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 }

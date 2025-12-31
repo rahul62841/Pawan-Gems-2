@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
 import useUserStore, { User } from "@/store/useUserStore";
 import { useState, useEffect } from "react";
+import apiFetch from "@/lib/api";
 
 type FormValues = {
   name: string;
@@ -28,7 +29,7 @@ export default function Profile() {
 
   async function fetchRequests() {
     try {
-      const res = await fetch("/api/order-requests", {
+      const res = await apiFetch("/api/order-requests", {
         credentials: "include",
       });
       if (res.ok) {
@@ -44,7 +45,7 @@ export default function Profile() {
     if (!user) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/me", {
+      const res = await apiFetch("/api/auth/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -90,7 +91,7 @@ export default function Profile() {
             variant="ghost"
             onClick={async () => {
               try {
-                const res = await fetch("/api/auth/logout", {
+                const res = await apiFetch("/api/auth/logout", {
                   method: "POST",
                   credentials: "include",
                 });
