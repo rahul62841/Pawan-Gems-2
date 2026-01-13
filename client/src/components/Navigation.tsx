@@ -28,6 +28,7 @@ export function Navigation() {
     { href: "/shop", label: "Collections" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
+    { href: "/login", label: "Login" },
   ];
 
   return (
