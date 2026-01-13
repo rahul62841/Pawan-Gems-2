@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { apiFetch } from "@/lib/api";
+import useUserStore from "@/store/useUserStore";
 
 // The use-cart hook declares CartItem internally but doesn't export it.
 // Define a local CartItem type here to match the shape used by this component.
@@ -44,8 +45,16 @@ export function CartPanel({
 }: CartPanelProps) {
   const { clearCart } = useCart();
   const { toast } = useToast();
+  const user = useUserStore((s) => s.user);
 
   async function handleRequestPurchase() {
+    if (!user) {
+      toast({
+        title: "Please login",
+        description: "Please login first to request purchase.",
+      });
+      return;
+    }
     try {
       const items = cartItems.map((it) => ({
         productId: it.product.id,
